@@ -5,7 +5,7 @@ const passport = require("passport")
 
 // User model
 const User = require("../models/User")
-const { forwardAuthenticated } = require("../config/auth")
+const { forwardAuthenticated, ensureAuthenticated } = require("../config/auth")
 
 // Login Page
 router.get("/login", forwardAuthenticated ,(req, res) => {
@@ -17,7 +17,20 @@ router.get("/register", forwardAuthenticated ,(req, res) => {
     res.render("register")
 })
 
-// Register Handel
+// Login with google
+router.get("/auth/google", 
+    passport.authenticate("google", { scope: ["profile"] }))
+
+// Let the authenticated user to the dashboard
+router.get('/auth/google/dashboard', 
+    passport.authenticate('google', { failureRedirect: '/users/login' }), 
+    ensureAuthenticated, 
+    (req, res) => {
+        // Successful authentication, redirect home.
+        res.render('dashboard', {name: req.user.name});
+});
+
+// Register Handle
 router.post("/register", (req, res) => {
     const { name, email, password, password2 } = req.body
     let errors = []
